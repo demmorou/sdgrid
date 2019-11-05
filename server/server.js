@@ -40,7 +40,7 @@ app.use(express.static(__dirname+'/src/pages/'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
 
-// appclient.use(express.static(__dirname+'/src/pages/'));
+appclient.use(express.static(__dirname+'/src/pages/client/'));
 appclient.use(bodyParser.json());
 appclient.use(bodyParser.urlencoded({ extended: false }))
 
@@ -55,20 +55,17 @@ appclient.use(bodyParser.urlencoded({ extended: false }))
 //     });
 // });
 
-appclient.get('/connect', (req, res) => {
+appclient.get('/sdgrid', (req, res) => {
     console.log('cliente web');
-    res.sendFile('src/pages/index_node.html', { root: __dirname });
+    res.sendFile('src/pages/client/index_client.html', { root: __dirname });
 });
 
-// app.post('/messages', (req, res) => {
-//     var message = new Message(req.body);
-//     message.save((err) => {
-//         if (err)
-//             sendStatus(500);
-//         io.emit('message', req.body);
-//         res.sendStatus(200);
-//     });
-// });
+appclient.post('/send', (req, res) => {
+    console.log('asdasd');
+    console.log(req.body);
+    io.emit('certo', { ddd: 'ddd' });
+    res.sendStatus(200);
+});
 
 // mongoose.connect("mongodb+srv://deusimar:deusi1mar23@cluster0-guro3.mongodb.net/test?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology:  true }, (err) =>{
 //     console.log('mongodb connected', err);
