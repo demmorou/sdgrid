@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <br>
+        <div class="jumbotron">
+
+        </div>
+        
+    </div>
+    <script type="text/javascript">
+        $(() => {
+            $("#send").click(()=>{
+                sendMessage({
+                    name: $("#name").val(), 
+                    message: $("#message").val()
+                });
+            });
+            getMessages();
+        });
+        
+        function addMessages(message){
+            $("#messages").append(`
+            <div class="p-3 mb-2 bg-secondary text-white">${message.clientIp}</div>`)
+        }
+
+        function addNode(cont){
+            alert('nova conexão');
+        }
+
+        function disconectNode(data){
+            alert('Disconnected IP: '+data.clientIp);
+        }
+
+        function getMessages(){
+            $.get('http://localhost:9510/messages', (data) => {
+                data.forEach(addMessages);
+            });
+        }
+
+        function sendMessage(message){
+            $.post('http://localhost:9510/messages', message);
+        }
+
+        var socket = io();
+        socket.on('connected', addNode);
+        socket.on('clientConnected', addMessages);
+        socket.on('saiu', disconectNode);
+    </script>
+</body>
+
+</html>
