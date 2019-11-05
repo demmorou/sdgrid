@@ -28,6 +28,10 @@
 var express = require('express');
 var bodyParser = require('body-parser')
 var app = express();
+var appclient = express();
+var httpclient = require('http').Server(appclient);
+var ioclient = require('socket.io')(httpclient);
+
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 // var mongoose = require('mongoose');
@@ -35,6 +39,10 @@ var io = require('socket.io')(http);
 app.use(express.static(__dirname+'/src/pages/'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
+
+// appclient.use(express.static(__dirname+'/src/pages/'));
+appclient.use(bodyParser.json());
+appclient.use(bodyParser.urlencoded({ extended: false }))
 
 // var Message = mongoose.model('Message', {
 //     name: String,
@@ -47,7 +55,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 //     });
 // });
 
-app.get('/connect', (req, res) => {
+appclient.get('/connect', (req, res) => {
+    console.log('cliente web');
     res.sendFile('src/pages/index_node.html', { root: __dirname });
 });
 
@@ -64,6 +73,10 @@ app.get('/connect', (req, res) => {
 // mongoose.connect("mongodb+srv://deusimar:deusi1mar23@cluster0-guro3.mongodb.net/test?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology:  true }, (err) =>{
 //     console.log('mongodb connected', err);
 // });
+
+const serverclient = httpclient.listen(1095, '0.0.0.0', () => {
+    console.log('Server client running on port ', serverclient.address().port);
+});
 
 const server = http.listen(9510, '0.0.0.0', () => {
     console.log('server is running on port', server.address().port);
