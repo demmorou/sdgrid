@@ -8,6 +8,25 @@
 </head>
 
 <body>
+
+    <nav class="navbar navbar-expand-lg navbar navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">SD-Grid</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Início<span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Hisótico</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
     <div class="container">
         <br>
         
@@ -40,12 +59,14 @@
             <div class="p-3 mb-2 bg-info text-white">${message.clientIp}</div>`)
         }
 
-        function addNode(cont){
-            alert('nova conexão');
+        function addNode(data){
+            $("#nodes").append(`
+            <div class="p-3 mb-2 bg-info text-white">Client Connected: ${data.clientIp}</div>`)
         }
 
         function disconectNode(data){
-            alert('Disconnected IP: '+data.clientIp);
+            $("#nodes").append(`
+            <div class="p-3 mb-2 bg-info text-white">Client Disconnected: ${data.clientIp}</div>`)
         }
 
         function getMessages(){
@@ -58,10 +79,24 @@
             $.post('http://localhost:9510/messages', message);
         }
 
-        var socket = io();
-        socket.on('connected', addNode);
-        socket.on('clientConnected', addMessages);
+        function updateNodes(nodes){
+            $("#nodes").empty();
+            for(var i = 0; i < nodes.clients.length; i++){
+                $("#nodes").append(`
+                <div class="p-3 mb-2 bg-info text-white">Client Connected: ${nodes.clients[i]}</div>`)
+            }
+        }
+
+        var socket = io.connect('http://localhost:9510');
+        // socket.on('connected', addNode);
+        socket.on('update', updateNodes);
+        // socket.on('clientConnected', addNode);
         socket.on('saiu', disconectNode);
+
+        $(document).ready( function(){
+            socket.emit('updatepage', { ok: true })
+        })
+
     </script>
 </body>
 

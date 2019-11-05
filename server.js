@@ -72,12 +72,28 @@ const server = http.listen(9510, '0.0.0.0', () => {
 let clients = []
 
 io.on('connection', (socket) => {
-    io.emit('clientConnected', { clientIp: socket.client.conn.remoteAddress });
-    io.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
-    // clients.push(socket);
-    console.log('Connected IP: '+socket.client.conn.remoteAddress);
-    socket.on('disconnect', () => {
-        io.emit('saiu', { clientIp: socket.client.conn.remoteAddress });
-        console.log('Disconected IP: '+socket.client.conn.remoteAddress);
-    });
+    if (socket.client.conn.remoteAddress == '127.0.0.1'){
+        // io.on('updatepage', (dados) => {
+        io.emit('update', { clients: clients });
+        console.log('pagina atualizada');
+        // });
+    }
+    else{
+        io.emit('clientConnected', { clientIp: socket.client.conn.remoteAddress });
+        socket.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
+        clients.push(socket.client.conn.remoteAddress);
+        console.log(clients.length);
+        io.emit('update', { clients: clients });
+        console.log('Connected IP: '+socket.client.conn.remoteAddress);
+        socket.on('disconnect', () => {
+            io.emit('saiu', { clientIp: socket.client.conn.remoteAddress });
+            console.log('Disconected IP: '+socket.client.conn.remoteAddress);
+            for (var i = 0; i < clients.length; i++) {
+                if (clients[i] === socket.client.conn.remoteAddress) {
+                    clients.splice(i, 1);
+                }
+            }
+            io.emit('update', { clients: clients });
+        });
+    }
 });
