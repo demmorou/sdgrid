@@ -7,6 +7,8 @@ const httpclient = require('http').Server(appclient);
 const multer = require('multer');
 const path = require('path');
 
+const fs = require('fs');
+
 // const upload = multer({ dest: 'uploads/' });
 
 const http = require('http').Server(app);
@@ -37,18 +39,21 @@ const storage = multer.diskStorage({
         cb(null, 'uploads/')
     },
     filename: function (req, file, cb) {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+        // alterar nome do arquivo
+        // cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+        cb(null, 'aquivo.pdf');
     }
 });
 
 const upload = multer({ storage });
 
 appclient.post('/sdgrid/file/upload', upload.single('file'), (req, res) => {
+    io.emit('certo', { email: 'Upload from: '+req.body.email });
     res.sendStatus(200);
 });
 
 const serverclient = httpclient.listen(1095, '0.0.0.0', () => {
-    console.log('Server client running on port ', serverclient.address().port);
+    console.log('client server running on port ', serverclient.address().port);
 });
 
 const server = http.listen(9510, '0.0.0.0', () => {

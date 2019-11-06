@@ -99,8 +99,8 @@
         socket.on('update', updateNodes);
         // socket.on('clientConnected', addNode);
         socket.on('saiu', disconectNode);
-        socket.on('certo', () => {
-            alert('ddd');
+        socket.on('certo', (data) => {
+            alert(data.email);
         });
         $(document).ready( function(){
             socket.emit('updatepage', { ok: true })
