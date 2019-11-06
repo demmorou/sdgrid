@@ -19,7 +19,7 @@
         </button>
     </nav>
     <div class="container mt-3">
-            <form action='file/upload' method='post' encType="multipart/form-data">
+            <form action='sdgrid/file/upload' method='post' encType="multipart/form-data">
                 <div class="jumbotron">
                     <div class="form-group">
                         <label for="email">Endereço de Email</label>
@@ -49,7 +49,7 @@
         }
 
         function sendData(data){
-            $.post('http://10.0.0.106:1095/send', data);
+            $.post('http://10.180.58.181:1095/send', data);
         }
 
     </script>

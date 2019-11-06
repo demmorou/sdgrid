@@ -61,6 +61,7 @@ const server = http.listen(9510, '0.0.0.0', () => {
 });
 
 let clients = []
+let nodes = []
 
 io.on('connection', (socket) => {
     if (socket.client.conn.remoteAddress == '127.0.0.1'){
@@ -74,7 +75,7 @@ io.on('connection', (socket) => {
         socket.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
         clients.push(socket.client.conn.remoteAddress);
         console.log('ID: '+socket.id);
-
+        
         // send to specific node
         io.to(socket.client.id).emit('task', { message: 'Olá, '+socket.client.conn.remoteAddress });
         console.log(clients.length);
