@@ -5,6 +5,6 @@ socket.on('connect', () => {
     console.log('Successfully conected!');
 });
 
-socket.on('chegou', (dados) => {
+socket.on('task', (dados) => {
     console.log(dados.message);
 });
