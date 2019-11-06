@@ -1,40 +1,16 @@
-// const express = require('express');
-// const bodyParser = require('body-parser');
-// const mongoose = require('mongoose');
+const express = require('express');
+const bodyParser = require('body-parser')
+const app = express();
+const appclient = express();
+const httpclient = require('http').Server(appclient);
 
-// const app = express();
+const multer = require('multer');
+const path = require('path');
 
-// var http = require('http').Server(app);
-// var io = require('socket.io')(http);
+// const upload = multer({ dest: 'uploads/' });
 
-// io.on('connection', () => {
-//     console.log('a user is connected');
-// });
-
-// mongoose.connect("mongodb+srv://deusimar:deusi1mar23@cluster0-guro3.mongodb.net/test?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology:  true }, (err) =>{
-//     console.log('mongodb connected', err);
-// });
-
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(express.static(__dirname+'/src/pages/'));
-
-// app.use('/', require('./src/Routes'));
-
-// http.listen(9510, ()=>{
-//     console.log('listen on port 9510');
-// });
-
-var express = require('express');
-var bodyParser = require('body-parser')
-var app = express();
-var appclient = express();
-var httpclient = require('http').Server(appclient);
-var ioclient = require('socket.io')(httpclient);
-
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-// var mongoose = require('mongoose');
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 
 app.use(express.static(__dirname+'/src/pages/'));
 app.use(bodyParser.json());
@@ -43,17 +19,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 appclient.use(express.static(__dirname+'/src/pages/client/'));
 appclient.use(bodyParser.json());
 appclient.use(bodyParser.urlencoded({ extended: false }))
-
-// var Message = mongoose.model('Message', {
-//     name: String,
-//     message: String
-// });
-
-// app.get('/messages', (req, res) => {
-//     Message.find({}, (err, messages) => {
-//         res.send(messages);
-//     });
-// });
 
 appclient.get('/sdgrid', (req, res) => {
     console.log('cliente web');
@@ -67,9 +32,20 @@ appclient.post('/send', (req, res) => {
     res.sendStatus(200);
 });
 
-// mongoose.connect("mongodb+srv://deusimar:deusi1mar23@cluster0-guro3.mongodb.net/test?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology:  true }, (err) =>{
-//     console.log('mongodb connected', err);
-// });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({ storage });
+
+appclient.post('/sdgrid/file/upload', upload.single('file'), (req, res) => {
+    res.sendStatus(200);
+});
 
 const serverclient = httpclient.listen(1095, '0.0.0.0', () => {
     console.log('Server client running on port ', serverclient.address().port);

@@ -99,7 +99,9 @@
         socket.on('update', updateNodes);
         // socket.on('clientConnected', addNode);
         socket.on('saiu', disconectNode);
-
+        socket.on('certo', () => {
+            alert('ddd');
+        });
         $(document).ready( function(){
             socket.emit('updatepage', { ok: true })
         })
