@@ -4,6 +4,7 @@ const colors = {
     secondaryColor: '#701719',
     blue: '#1E90FF',
     white: '#ffffff',
+    red: '#ff0000',
     black: '#212121',
     background: '#f0f0f0',
     backgroundView: '#f0f0f0',

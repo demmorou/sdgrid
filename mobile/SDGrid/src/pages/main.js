@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Button, Alert, Text, TextInput, TouchableOpacity  } from 'react-native';
 import io from 'socket.io-client';
+import DeviceInfo from 'react-native-device-info';
 import styles from '../config/styles';
 
 class Main extends React.Component {
@@ -15,8 +16,9 @@ class Main extends React.Component {
     }
 
     connect = () => {
-        const socket = io(`http://${this.state.ip}:${this.state.port}`);
-        Alert.alert('socket.id');
+        const socket = io(`http://${this.state.ip}:${this.state.port}`)
+        this.setState({ip:'', port:''})
+        this.props.navigation.navigate('Page1',{socket:socket})
     }
 
     render(){
@@ -31,7 +33,7 @@ class Main extends React.Component {
                     <TextInput autoCapitalize='none' onChangeText={(port)=>{this.setState({port:port})}} keyboardType='numeric' style={styles.input} placeholder="Porta" />
                 </View>
 
-                <View style={{ alignItems: 'center', justifyContent: "center", width: '50%', marginTop: 25 }}>
+                <View style={{ alignItems: 'center', justifyContent: "center", width: '100%', marginTop: 25 }}>
                     <TouchableOpacity style={styles.button} activeOpacity={0.6} onPress={()=>{this.connect()}}>
                         <Text style={styles.text}>CONECTAR</Text>
                     </TouchableOpacity>

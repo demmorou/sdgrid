@@ -37,6 +37,16 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
 
+    button_desconectar: {
+        width: '80%',
+        height: 49,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 3,
+        backgroundColor: colors.red,
+        marginTop: 20,
+    },
+
     text: {
         fontSize: 18,
         color: colors.white,
