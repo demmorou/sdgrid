@@ -71,12 +71,11 @@ io.on('connection', (socket) => {
         // });
     }
     else{
-        io.emit('clientConnected', { clientIp: socket.client.conn.remoteAddress });
         socket.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
         clients.push(socket.client.conn.remoteAddress);
         console.log('ID: '+socket.id);
         socket.on('resources', (dados) => {
-            console.log(dados);
+            console.log(socket.id+' - ',dados);
         });
         // send to specific node
         io.to(socket.client.id).emit('task', { message: 'Olá, '+socket.client.conn.remoteAddress });
