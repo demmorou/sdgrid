@@ -1,4 +1,5 @@
 const io = require('socket.io-client');
+var checkWord = require('check-word'), words = checkWord('en'); // setup the language for check, default is en
 const { checkCpu, checkMemory } = require('./calculeResources');
 
 function checkResources() {
@@ -27,7 +28,19 @@ function startConnection() {
     socket.emit('resources', { cpu: cpu, memory: memory / 1024 })
   });
 
-  socket.on('task', (dados) => {
-    console.log(dados.message);
+  socket.on('maketask', (dados) => {
+    console.log(dados);
+    var message = dados.dados.split(' ');
+    var retorno = ''
+    // console.log(message, retorno)
+    for(var i = 0; i < message.length; i++){
+      console.log(message[i]);
+      if(!words.check(message[i])){
+        retorno +=' '+message[i]
+      }
+    }
+    console.log(retorno);
+    socket.emit('result', { dados: retorno, id: socket.id });
   });
+  
 }

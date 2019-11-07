@@ -4,8 +4,13 @@ const app = express();
 const appclient = express();
 const httpclient = require('http').Server(appclient);
 
+var pegar = 'ddd';
+
 const multer = require('multer');
 const path = require('path');
+
+let clients = [];
+let nodes = [];
 
 const fs = require('fs');
 
@@ -49,6 +54,7 @@ const upload = multer({ storage });
 
 appclient.post('/sdgrid/file/upload', upload.single('file'), (req, res) => {
     io.emit('certo', { email: 'Upload from: '+req.body.email });
+    sendFileToNodes();
     res.sendStatus(200);
 });
 
@@ -60,9 +66,6 @@ const server = http.listen(9510, '0.0.0.0', () => {
     console.log('server is running on port', server.address().port);
 });
 
-let clients = [];
-let nodes = [];
-
 io.on('connection', (socket) => {
     if (socket.client.conn.remoteAddress == '127.0.0.1'){
         // io.on('updatepage', (dados) => {
@@ -72,13 +75,17 @@ io.on('connection', (socket) => {
     }
     else{
         socket.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
-        clients.push(socket.client.conn.remoteAddress);
+        clients.push(socket.id);
         console.log('ID: '+socket.id);
         socket.on('resources', (dados) => {
             console.log(socket.id+' - ',dados);
         });
+        socket.on('result', (dados) => {
+            console.log(dados.dados);
+        });
         // send to specific node
         io.to(socket.client.id).emit('task', { message: 'Olá, '+socket.client.conn.remoteAddress });
+        // sendFileToNodes();
         console.log(clients.length);
         io.emit('update', { clients: clients });
         console.log('Connected IP: '+socket.client.conn.remoteAddress);
@@ -94,3 +101,38 @@ io.on('connection', (socket) => {
         });
     }
 });
+
+// function getResults(callback){
+//     io.on('result', (dados) => {
+//         return callback(dados);
+//     });
+// }
+
+// getResults((response) => {
+//     console.log(response);
+// });
+
+sendFileToNodes = (dados) => {
+    const fs = require('fs');
+
+    let rawdata = fs.readFileSync('uploads/upload.json');
+    let student = JSON.parse(rawdata);
+    // console.log(student);
+
+    var message = student.message;
+
+    var split = message.split(' ');
+    var total = split.length;
+    var qtdNos = clients.length;
+    // var qtdpalavras = total / qtdNos;
+    var intvalue = Math.ceil( total / qtdNos );
+    var contsplit = 0
+    for(var i = 0; i < clients.length; i++){
+        var palavraToSend = ''
+        for(var j = 0; j < intvalue; j++){
+            palavraToSend+=' '+split[contsplit]
+            contsplit += 1
+        }
+        io.to(clients[i]).emit('maketask', { dados: palavraToSend })
+    }
+}
