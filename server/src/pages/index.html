@@ -100,7 +100,7 @@
         // socket.on('clientConnected', addNode);
         socket.on('saiu', disconectNode);
         socket.on('certo', (data) => {
-            alert(data.email);
+            // alert(data.email);
         });
         $(document).ready( function(){
             socket.emit('updatepage', { ok: true })

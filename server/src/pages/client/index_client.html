@@ -19,37 +19,77 @@
         </button>
     </nav>
     <div class="container mt-3">
-            <form action='sdgrid/file/upload' method='post' encType="multipart/form-data">
+            <!-- <form action='sdgrid/file/upload' method='post' encType="multipart/form-data"> -->
+            <form method='post' encType="multipart/form-data"></form>
                 <div class="jumbotron">
+                    <h2>Corretor de palavras</h2>
+                    <select id="tipo" class="custom-select">
+                        <!-- <option selected>Corrigir ...</option> -->
+                        <option selected value="texto">Texto</option>
+                        <option value="arquivo">Arquivo</option>
+                    </select>
+                    <br>
+                    <br>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Texto</span>
+                        </div>
+                        <textarea id="texto" class="form-control" aria-label="With textarea"></textarea>
+                    </div>
+
+                    <!-- <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                        <label class="custom-control-label" for="customSwitch1">Enviar arquivo</label>
+                    </div>
                     <div class="form-group">
                         <label for="email">Endereço de Email</label>
                         <input name="email" type="email" class="form-control" id="email" aria-describedby="emailHelp"
                             placeholder="Digite seu email">
                         <small id="emailHelp" class="form-text text-muted">Seu email não será compartilhado.</small>
-                    </div>
-                    <div class="form-group mt-4">
+                    </div-->
+                    <!-- <div class="form-group mt-4">
                         <input name="file" type="file" class="form-control-file" id="file">
                         <button type="submit" class="mt-4 btn btn-primary">Enviar</button>
+                    </div> -->
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFileLang" lang="pt-br">
+                        <label class="custom-file-label" for="customFileLang">Seleccionar Archivo</label>
                     </div>
+                    <button id="btnSend" type="submit" class="mt-4 btn btn-primary">Enviar</button>
                 </div>
             </form>
     </div>
     
     <script type="text/javascript">
         
+        // bsCustomFileInput.init()
+
+        // var btn = document.getElementById('btnResetForm')
+        // var form = document.querySelector('form')
+        // btn.addEventListener('click', function () {
+        //     form.reset()
+        // })
+
         $(() => {
-            $("#send").click( () => {
-                sendData({ email: $("#email").val(), file: $("#file").val() });
+            $("#btnSend").click( () => {
+                console.log($("#tipo").val()=="texto")
+                if ($("#tipo").val()=="texto") {
+                    var message = $("#texto").val()
+                } else {
+                    var message = $("#customFileLang").val()
+                }
+                console.log({ messageType: $("#tipo").val(), message: message})
+                sendData({ messageType: $("#tipo").val(), message: message});
             });
         });
         
         function addMessages(message){
-            $("#messages").append(`
-            <div class="p-3 mb-2 bg-secondary text-white">${message.clientIp}</div>`)
+            // $("#messages").append(`
+            // <div class="p-3 mb-2 bg-secondary text-white">${message.clientIp}</div>`)
         }
 
         function sendData(data){
-            $.post('http://10.180.58.181:1095/send', data);
+            $.post('http://192.168.18.3:1095/send', data);
         }
 
     </script>

@@ -34,8 +34,9 @@ appclient.get('/sdgrid', (req, res) => {
 
 appclient.post('/send', (req, res) => {
     console.log('asdasd');
-    console.log(req.body);
-    io.emit('certo', { ddd: 'ddd' });
+    console.log(req.body.message);
+    io.to(nodes[0]).emit('maketask', { dados: req.body.message})
+    // io.emit('certo', { ddd: 'ddd' });
     res.sendStatus(200);
 });
 
@@ -69,35 +70,36 @@ const server = http.listen(9510, '0.0.0.0', () => {
 io.on('connection', (socket) => {
     if (socket.client.conn.remoteAddress == '127.0.0.1'){
         // io.on('updatepage', (dados) => {
-        io.emit('update', { clients: clients });
+        io.emit('update', { nodes: nodes });
         console.log('pagina atualizada');
         // });
     }
     else{
         socket.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
-        clients.push(socket.id);
+        nodes.push(socket.id);
         console.log('ID: '+socket.id);
         socket.on('resources', (dados) => {
             console.log(socket.id+' - ',dados);
         });
         socket.on('result', (dados) => {
-            console.log(dados.dados);
+            console.log(dados);
         });
         // send to specific node
         io.to(socket.client.id).emit('task', { message: 'Olá, '+socket.client.conn.remoteAddress });
         // sendFileToNodes();
-        console.log(clients.length);
-        io.emit('update', { clients: clients });
+        console.log(nodes.length);
+        io.emit('update', { nodes: nodes });
         console.log('Connected IP: '+socket.client.conn.remoteAddress);
         socket.on('disconnect', () => {
             io.emit('saiu', { clientIp: socket.client.conn.remoteAddress });
             console.log('Disconected IP: '+socket.client.conn.remoteAddress);
-            for (var i = 0; i < clients.length; i++) {
-                if (clients[i] === socket.client.conn.remoteAddress) {
-                    clients.splice(i, 1);
+            for (var i = 0; i < nodes.length; i++) {
+                console.log(nodes[i])
+                if (nodes[i] === socket.id) {
+                    nodes.splice(i, 1);
                 }
             }
-            io.emit('update', { clients: clients });
+            io.emit('update', { nodes: nodes });
         });
     }
 });
@@ -123,16 +125,16 @@ sendFileToNodes = (dados) => {
 
     var split = message.split(' ');
     var total = split.length;
-    var qtdNos = clients.length;
+    var qtdNos = nodes.length;
     // var qtdpalavras = total / qtdNos;
     var intvalue = Math.ceil( total / qtdNos );
     var contsplit = 0
-    for(var i = 0; i < clients.length; i++){
+    for(var i = 0; i < nodes.length; i++){
         var palavraToSend = ''
         for(var j = 0; j < intvalue; j++){
             palavraToSend+=' '+split[contsplit]
             contsplit += 1
         }
-        io.to(clients[i]).emit('maketask', { dados: palavraToSend })
+        io.to(nodes[i]).emit('maketask', { dados: palavraToSend })
     }
 }
