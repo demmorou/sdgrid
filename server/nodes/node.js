@@ -1,7 +1,7 @@
 const io = require('socket.io-client');
 // var checkWord = require('check-word'), words = checkWord('en'); // setup the language for check, default is en
 var SpellChecker = require('simple-spellchecker');
-var dictionary = SpellChecker.getDictionarySync("fr-FR"); 
+var dictionary = SpellChecker.getDictionarySync("en-US"); 
 
 const { checkCpu, checkMemory } = require('./calculeResources');
 
@@ -32,25 +32,21 @@ function startConnection() {
   });
 
   socket.on('maketask', (dados) => {
-    // console.log(dados);
+    console.log('Recebido:')
+    console.log(dados)
     var textoCorrigir = dados.dados.split(' ');
     var palavras = {}
-    // console.log(message, retorno)
     for(var i = 0; i < textoCorrigir.length; i++){
-      // console.log(textoCorrigir[i]);
-      // console.log(dictionary.spellCheck(textoCorrigir[i]));
       if (!dictionary.spellCheck(textoCorrigir[i])) {
         palavras[textoCorrigir[i]] = dictionary.getSuggestions(textoCorrigir[i])
-        // console.log(dictionary.getSuggestions(textoCorrigir[i]))
       }
-      // if(!words.check(textoCorrigir[i])){
-      //   retorno +=' '+textoCorrigir[i]
-      // }
     }
     var retorno = {idMachine: socket.id, words: palavras}
-    // retorno[words] = palavras
+    console.log('Retornando:')
     console.log(retorno);
-    socket.emit('result', retorno);
+    // socket.emit('result', retorno);
+    socket.emit(socket.id, retorno)
+    console.log('Enviado!')
   });
   
 }
