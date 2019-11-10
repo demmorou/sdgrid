@@ -24,15 +24,27 @@ checkResources();
 setTimeout(startConnection, 3000);
 
 function startConnection() {
-  
+  var index;
   const socket = io.connect('http://192.168.18.3:9510');
   socket.on('connect', () => {
     console.log('Successfully connected!');
     socket.emit('resources', { cpu: cpu, memory: memory / 1024 })
   });
 
+  socket.on('index', (indexn)=>{
+    index=indexn;
+  })
+
+  socket.on('getResources', () => {
+    console.log('recebido')
+    checkCpu(function(response){
+      cpu = response;
+    });
+    memory = checkMemory();
+    socket.emit('sendResources', {index:index, cpu:cpu, memory:memory})
+  })
+
   socket.on('maketask', (dados) => {
-    // console.log('Recebido:')
     // console.log(dados)
     var textoCorrigir = dados.dados.split(' ');
     var palavras = {}
@@ -41,12 +53,14 @@ function startConnection() {
         palavras[textoCorrigir[i]] = dictionary.getSuggestions(textoCorrigir[i])
       }
     }
-    var retorno = {idClient:dados.idClient, idMachine: socket.id, words: palavras}
-    // console.log('Retornando:')
-    // console.log(retorno);
-    // socket.emit('result', retorno);
-    socket.emit(socket.id, retorno)
-    // console.log('Enviado!')
+    var retorno = {
+      idClient:dados.idClient,
+      parte:dados.parte,
+      totalPartes:dados.totalPartes,
+      words: palavras
+    }
+    console.log(retorno)
+    socket.emit('correcoes', retorno)
   });
   
 }

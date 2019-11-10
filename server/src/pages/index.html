@@ -81,16 +81,20 @@
         // }
 
         function updateNodes(nodes){
-            // console.log(nodes)
-            if(nodes.nodes.length === 0){
+            console.log(nodes)
+            if(nodes.length === 0){
                 $("#nodes").empty();
                 $("#nodes").append(`
                 <div class="p-3 mb-2 bg-info text-white">Não há nós conectados!</div>`)
             }else{
                 $("#nodes").empty();
-                for(var i = 0; i < nodes.nodes.length; i++){
+                for(var i = 0; i < nodes.length; i++){
                     $("#nodes").append(`
-                    <div class="p-3 mb-2 bg-info text-white">Client Connected: ${nodes.nodes[i]}</div>`)
+                    <div class="p-3 mb-2 bg-info text-white">
+                        ID: ${nodes[i].nodeId}<br>
+                        Uso da CPU: ${nodes[i].cpu}<br>
+                        Memoria livre: ${nodes[i].memory}
+                    </div>`)
                 }
             }
         }
@@ -101,9 +105,9 @@
         socket.on('update', updateNodes);
         // socket.on('clientConnected', addNode);
         socket.on('saiu', disconectNode);
-        socket.on('certo', (data) => {
-            // alert(data.email);
-        });
+        // socket.on('certo', (data) => {
+        //     // alert(data.email);
+        // });
         $(document).ready( function(){
             socket.emit('updatepage', { ok: true })
         })

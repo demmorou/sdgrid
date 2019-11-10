@@ -11,9 +11,9 @@ const path = require('path');
 
 let clients = [];
 let nodes = [];
+let operacoes = [];
 
 // const fs = require('fs');
-
 // const upload = multer({ dest: 'uploads/' });
 
 // Server to NodeMachines
@@ -51,10 +51,35 @@ function response(req, res) {
 ioClient.on("connection", function(socket){
     console.log('Clinte conectado')
     clients.push(socket.id);
-    // socket.emit()
-    socket.on("dadosCliente", (messsageCliente) => {
-        ioNode.to(nodes[0]).emit('maketask', { idClient:socket.id, dados: messsageCliente.message });
-        // console.log(sendToNode(messsageCliente.message, socket.id))
+    socket.on("dadosCliente", (requicaoCliente) => {
+        var texto = requicaoCliente.message
+        var listaPalavras = texto.split(' ')
+        var cadaNo = qtdPalavrasCada(listaPalavras.length);
+        qtdCadaNo = cadaNo[0];
+        var np = 0;
+        let i;
+        for (i = 0; i < cadaNo[1]; i++) {
+            if (qtdCadaNo[i] > 0) {
+                var palavras=listaPalavras[np];
+                np += 1;
+                if (qtdCadaNo[i] > 1) {
+                    for (let j = 1; j < qtdCadaNo[i]; j++) {
+                        palavras+=' '+listaPalavras[np];
+                        np += 1;
+                    }
+                }
+                var enviar = {
+                    idClient:socket.id,
+                    parte:i,
+                    totalPartes:cadaNo[1],
+                    dados:palavras
+                }
+                ioNode.to(nodes[i].nodeId).emit('maketask', enviar)
+            } else {
+                break
+            }
+        }
+        operacoes.push({idClient:socket.id, totalPartes:cadaNo[1], words: {}})
     });
 });
 
@@ -69,50 +94,60 @@ console.log('Server Clinte Online na porta: 1095')
 
 ioNode.on('connection', (socket) => {
     if (socket.client.conn.remoteAddress == '127.0.0.1'){
-        // io.on('updatepage', (dados) => {
-        ioNode.emit('update', { nodes: nodes });
-        // });
+        ioNode.emit('update', nodes);
     }
     else{
-        socket.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
-        nodes.push(socket.id);
-        // console.log('ID: '+socket.id);
         socket.on('resources', (dados) => {
-            console.log(socket.id+' - ',dados);
+            nodes.push({nodeId: socket.id, cpu: dados.cpu, memory: dados.memory, participacao: 0});
+            ioNode.emit('update', nodes);
         });
-        // send to specific node
-        ioNode.to(socket.client.id).emit('task', { message: 'Olá, '+socket.client.conn.remoteAddress });
-        // sendFileToNodes();
-        ioNode.emit('update', { nodes: nodes });
-        // console.log('Connected IP: '+socket.client.conn.remoteAddress);
         socket.on('disconnect', () => {
-            ioNode.emit('saiu', { clientIp: socket.client.conn.remoteAddress });
-            // console.log('Disconected IP: '+socket.client.conn.remoteAddress);
             for (var i = 0; i < nodes.length; i++) {
-                // console.log(nodes[i])
-                if (nodes[i] === socket.id) {
+                if (nodes[i].nodeId === socket.id) {
                     nodes.splice(i, 1);
                 }
             }
-            ioNode.emit('update', { nodes: nodes });
+            ioNode.emit('update', nodes);
         });
     }
-    socket.on(nodes[0], function(msg){
-        ioClient.to(msg.idClient).emit("correcao", {words: msg.words});
-	});
+    socket.on('correcoes', (resultados)=>{
+        for (let i = 0; i < operacoes.length; i++) {
+            if (resultados.idClient === operacoes[i].idClient) {
+                operacoes[i].totalPartes -= 1
+                operacoes[i].words = jsonConcat(operacoes[i].words, resultados.words)
+                if (operacoes[i].totalPartes == 0) {
+                    ioClient.to(operacoes[i].idClient).emit('correcao', operacoes[i].words);
+                    operacoes.splice(i, 1);
+                }
+            }
+        }
+    });
 });
 
-sendToNode = (texto, client) => {
-    var esperar = nodes[0];
-    var retorno = {};
-    texto.parte = 1;
-    ioNode.to(nodes[0]).emit('maketask', { dados: texto });
-    // console.log(esperar)
-    // ioNode.on(esperar, (resultado) => {
-    //     console.log("resultado")
-    //     console.log(resultado)
-    //     ioClient.to(client).emit("correcao",{resultado: resultado});
-    // });
+qtdPalavrasCada = (qtdPalavras) => {
+    var totalMemory = 0;
+    let qtdCadaNo = [];
+    let i;
+    nodes.forEach(no => {
+        totalMemory+=no.memory;
+    });
+    for (i = 0; i < nodes.length; i++) {
+        qtdCadaNo.push(Math.ceil((nodes[i].memory * qtdPalavras) / totalMemory));
+        qtdPalavras -= 1;
+    }
+    for (i = 0; i < qtdCadaNo.length; i++) {
+        if (qtdCadaNo[i] == 0) {
+            break
+        }
+    }
+    return [qtdCadaNo, i];
+}
+
+jsonConcat = (o1, o2) => {
+    for (var key in o2) {
+     o1[key] = o2[key];
+    }
+    return o1;
 }
 
 sendFileToNodes = (dados) => {
@@ -120,14 +155,12 @@ sendFileToNodes = (dados) => {
 
     let rawdata = fs.readFileSync('uploads/upload.json');
     let student = JSON.parse(rawdata);
-    // console.log(student);
 
     var message = student.message;
 
     var split = message.split(' ');
     var total = split.length;
     var qtdNos = nodes.length;
-    // var qtdpalavras = total / qtdNos;
     var intvalue = Math.ceil( total / qtdNos );
     var contsplit = 0
     for(var i = 0; i < nodes.length; i++){
@@ -136,6 +169,5 @@ sendFileToNodes = (dados) => {
             palavraToSend+=' '+split[contsplit]
             contsplit += 1
         }
-        // ioNode.to(nodes[i]).emit('maketask', { dados: palavraToSend })
     }
 }
