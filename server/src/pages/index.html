@@ -45,57 +45,58 @@
         });
     </script> -->
     <script type="text/javascript">
-        $(() => {
-            $("#send").click(()=>{
-                sendMessage({
-                    name: $("#name").val(), 
-                    message: $("#message").val()
-                });
-            });
-            getMessages();
-        });
+        // $(() => {
+        //     $("#send").click(()=>{
+        //         sendMessage({
+        //             name: $("#name").val(), 
+        //             message: $("#message").val()
+        //         });
+        //     });
+        //     getMessages();
+        // });
         
-        function addMessages(message){
-            $("#nodes").append(`
-            <div class="p-3 mb-2 bg-info text-white">${message.clientIp}</div>`)
-        }
+        // function addMessages(message){
+        //     $("#nodes").append(`
+        //     <div class="p-3 mb-2 bg-info text-white">${message.clientIp}</div>`)
+        // }
 
-        function addNode(data){
-            $("#nodes").append(`
-            <div class="p-3 mb-2 bg-info text-white">Client Connected: ${data.clientIp}</div>`)
-        }
+        // function addNode(data){
+        //     $("#nodes").append(`
+        //     <div class="p-3 mb-2 bg-info text-white">Client Connected: ${data.clientIp}</div>`)
+        // }
 
         function disconectNode(data){
             $("#nodes").append(`
             <div class="p-3 mb-2 bg-info text-white">Client Disconnected: ${data.clientIp}</div>`)
         }
 
-        function getMessages(){
-            $.get('http://localhost:9510/messages', (data) => {
-                data.forEach(addMessages);
-            });
-        }
+        // function getMessages(){
+        //     $.get('http://localhost:9510/messages', (data) => {
+        //         data.forEach(addMessages);
+        //     });
+        // }
 
-        function sendMessage(message){
-            $.post('http://localhost:9510/messages', message);
-        }
+        // function sendMessage(message){
+        //     $.post('http://localhost:9510/messages', message);
+        // }
 
         function updateNodes(nodes){
-            if(nodes.clients.length === 0){
+            // console.log(nodes)
+            if(nodes.nodes.length === 0){
                 $("#nodes").empty();
                 $("#nodes").append(`
                 <div class="p-3 mb-2 bg-info text-white">Não há nós conectados!</div>`)
             }else{
                 $("#nodes").empty();
-                for(var i = 0; i < nodes.clients.length; i++){
+                for(var i = 0; i < nodes.nodes.length; i++){
                     $("#nodes").append(`
-                    <div class="p-3 mb-2 bg-info text-white">Client Connected: ${nodes.clients[i]}</div>`)
+                    <div class="p-3 mb-2 bg-info text-white">Client Connected: ${nodes.nodes[i]}</div>`)
                 }
             }
         }
 
         var socket = io.connect('http://localhost:9510');
-        console.log(socket)
+        // console.log(nodes.clients.length)
         // socket.on('connected', addNode);
         socket.on('update', updateNodes);
         // socket.on('clientConnected', addNode);
