@@ -32,8 +32,8 @@ function startConnection() {
   });
 
   socket.on('maketask', (dados) => {
-    console.log('Recebido:')
-    console.log(dados)
+    // console.log('Recebido:')
+    // console.log(dados)
     var textoCorrigir = dados.dados.split(' ');
     var palavras = {}
     for(var i = 0; i < textoCorrigir.length; i++){
@@ -41,12 +41,12 @@ function startConnection() {
         palavras[textoCorrigir[i]] = dictionary.getSuggestions(textoCorrigir[i])
       }
     }
-    var retorno = {idMachine: socket.id, words: palavras}
-    console.log('Retornando:')
-    console.log(retorno);
+    var retorno = {idClient:dados.idClient, idMachine: socket.id, words: palavras}
+    // console.log('Retornando:')
+    // console.log(retorno);
     // socket.emit('result', retorno);
     socket.emit(socket.id, retorno)
-    console.log('Enviado!')
+    // console.log('Enviado!')
   });
   
 }

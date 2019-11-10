@@ -50,9 +50,11 @@ function response(req, res) {
 
 ioClient.on("connection", function(socket){
     console.log('Clinte conectado')
+    clients.push(socket.id);
+    // socket.emit()
     socket.on("dadosCliente", (messsageCliente) => {
-        console.log(messsageCliente)
-        console.log(sendToNode(messsageCliente.message))
+        ioNode.to(nodes[0]).emit('maketask', { idClient:socket.id, dados: messsageCliente.message });
+        // console.log(sendToNode(messsageCliente.message, socket.id))
     });
 });
 
@@ -74,24 +76,20 @@ ioNode.on('connection', (socket) => {
     else{
         socket.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
         nodes.push(socket.id);
-        console.log('ID: '+socket.id);
+        // console.log('ID: '+socket.id);
         socket.on('resources', (dados) => {
             console.log(socket.id+' - ',dados);
-        });
-        socket.on('result', (dados) => {
-            console.log(dados);
         });
         // send to specific node
         ioNode.to(socket.client.id).emit('task', { message: 'Olá, '+socket.client.conn.remoteAddress });
         // sendFileToNodes();
-        console.log(nodes.length);
         ioNode.emit('update', { nodes: nodes });
-        console.log('Connected IP: '+socket.client.conn.remoteAddress);
+        // console.log('Connected IP: '+socket.client.conn.remoteAddress);
         socket.on('disconnect', () => {
             ioNode.emit('saiu', { clientIp: socket.client.conn.remoteAddress });
-            console.log('Disconected IP: '+socket.client.conn.remoteAddress);
+            // console.log('Disconected IP: '+socket.client.conn.remoteAddress);
             for (var i = 0; i < nodes.length; i++) {
-                console.log(nodes[i])
+                // console.log(nodes[i])
                 if (nodes[i] === socket.id) {
                     nodes.splice(i, 1);
                 }
@@ -99,19 +97,22 @@ ioNode.on('connection', (socket) => {
             ioNode.emit('update', { nodes: nodes });
         });
     }
+    socket.on(nodes[0], function(msg){
+        ioClient.to(msg.idClient).emit("correcao", {words: msg.words});
+	});
 });
 
-sendToNode = (texto) => {
+sendToNode = (texto, client) => {
     var esperar = nodes[0];
     var retorno = {};
     texto.parte = 1;
     ioNode.to(nodes[0]).emit('maketask', { dados: texto });
-    console.log(esperar)
-    ioNode.on(esperar, (resultado) => {
-        console.log(resultado)
-        retorno = resultado
-    });
-    return retorno
+    // console.log(esperar)
+    // ioNode.on(esperar, (resultado) => {
+    //     console.log("resultado")
+    //     console.log(resultado)
+    //     ioClient.to(client).emit("correcao",{resultado: resultado});
+    // });
 }
 
 sendFileToNodes = (dados) => {
