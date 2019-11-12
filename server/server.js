@@ -3,7 +3,8 @@ const bodyParser = require('body-parser')
 const app = express();
 const appclient = express();
 const httpclient = require('http').Server(appclient);
-
+const mongoose = require('mongoose');
+const Messages = require('./src/models/Messages');
 var pegar = 'ddd';
 
 const multer = require('multer');
@@ -13,6 +14,15 @@ let clients = [];
 let nodes = [];
 
 const fs = require('fs');
+
+// using mongodb
+// mongoose.connect("mongodb+srv://deusimar:deusi1mar23@cluster0-guro3.mongodb.net/test?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology:  true }, (err) =>{
+//     console.log('mongodb connected', err);
+// });
+
+// Messages.find({}, (err, messages) => {
+//     console.log(messages);
+// })
 
 // const upload = multer({ dest: 'uploads/' });
 
@@ -55,6 +65,10 @@ const upload = multer({ storage });
 appclient.post('/sdgrid/file/upload', upload.single('file'), (req, res) => {
     io.emit('certo', { email: 'Upload from: '+req.body.email });
     sendFileToNodes();
+    res.redirect('/result');
+});
+
+appclient.get('/result', (req, res) => {
     res.sendStatus(200);
 });
 
@@ -77,18 +91,19 @@ io.on('connection', (socket) => {
         socket.emit('chegou', { message: 'Olá, '+socket.client.conn.remoteAddress });
         clients.push(socket.id);
         console.log('ID: '+socket.id);
+
         socket.on('resources', (dados) => {
             console.log(socket.id+' - ',dados);
         });
-        socket.on('result', (dados) => {
-            console.log(dados.dados);
-        });
+
         // send to specific node
         io.to(socket.client.id).emit('task', { message: 'Olá, '+socket.client.conn.remoteAddress });
         // sendFileToNodes();
         console.log(clients.length);
+        
         io.emit('update', { clients: clients });
         console.log('Connected IP: '+socket.client.conn.remoteAddress);
+        
         socket.on('disconnect', () => {
             io.emit('saiu', { clientIp: socket.client.conn.remoteAddress });
             console.log('Disconected IP: '+socket.client.conn.remoteAddress);
@@ -99,6 +114,9 @@ io.on('connection', (socket) => {
             }
             io.emit('update', { clients: clients });
         });
+        socket.on('result', (dados) => {
+            console.log(dados.dados);
+        });
     }
 });
 
@@ -107,10 +125,6 @@ io.on('connection', (socket) => {
 //         return callback(dados);
 //     });
 // }
-
-// getResults((response) => {
-//     console.log(response);
-// });
 
 sendFileToNodes = (dados) => {
     const fs = require('fs');

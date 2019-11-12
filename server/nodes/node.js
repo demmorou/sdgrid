@@ -37,6 +37,7 @@ function startConnection() {
       console.log(message[i]);
       if(!words.check(message[i])){
         retorno +=' '+message[i]
+        
       }
     }
     console.log(retorno);
