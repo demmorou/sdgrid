@@ -19,34 +19,64 @@
         </button>
     </nav>
     <div class="container mt-3">
-            <form id="campoenvio">
-                <div class="jumbotron">
-                    <h2>Corretor de palavras</h2>
-                    <select id="tipo" class="custom-select">
-                        <option selected value="texto">Texto</option>
-                        <option value="arquivo">Arquivo</option>
-                    </select>
-                    <br>
-                    <br>
-                    <div class="input-group">
+        <form id="campoenvio">
+            <div class="jumbotron">
+                <h2>Corretor de palavras</h2>
+                <select id="tipo" class="form-control">
+                    <option selected value="selecione">Selecione</option>
+                    <option value="texto">Texto</option>
+                    <option value="arquivo">Arquivo</option>
+                </select>
+                <div id="divinput">
+                    <div id="divtexto" class="input-group mt-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text">Texto</span>
                         </div>
                         <textarea id="texto" class="form-control" aria-label="With textarea"></textarea>
                     </div>
-                    <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="customFileLang" lang="pt-br">
-                        <label class="custom-file-label" for="customFileLang">Seleccionar Archivo</label>
+                    <div id="divfile" class="form-group mt-3">
+                        <input type="file" class="form-control-file" id="customFileLang" lang="pt-br">
+                        <span class="badge badge-success mt-3" id="sizefile"></span>
                     </div>
                     <button id="btnSend" type="submit" class="mt-4 btn btn-primary">Enviar</button>
                 </div>
-            </form>
-            <div class="alert-info" id="words">
             </div>
+        </form>
+        <div class="alert-info" id="words">
+        </div>
     </div>
     
     <script type="text/javascript">
         var socket = io.connect();
+
+        $('#divinput').hide();
+
+        $('#customFileLang').bind('change', function() {
+        var fSExt = new Array('Bytes', 'KB', 'MB', 'GB');
+        fSize = this.files[0].size; 
+        i=0;
+        while(fSize>900){
+            fSize/=1024;
+            i++;
+        }
+        $("#sizefile").text((Math.round(fSize*100)/100)+' '+fSExt[i]);
+        });
+
+        $("#tipo").change(function() {
+            if($(this).val() == 'texto'){
+                $('#divinput').show();
+                $("#divtexto").show();
+                $("#divfile").hide();
+            }else if ($(this).val() == 'arquivo') {
+                $('#divinput').show();
+                $("#divfile").show();
+                $("#divtexto").hide();
+            }else{
+                $("#divfile").hide();
+                $("#divtexto").hide();
+                $('#divinput').hide();
+            }
+        });
 
         $("form#campoenvio").submit(function(e) {
             e.preventDefault();
