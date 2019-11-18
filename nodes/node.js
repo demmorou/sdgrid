@@ -1,8 +1,10 @@
 const io = require('socket.io-client');
 // var checkWord = require('check-word'), words = checkWord('en'); // setup the language for check, default is en
 var SpellChecker = require('simple-spellchecker');
-var dictionary = SpellChecker.getDictionarySync("en-US"); 
+var dictionary = SpellChecker.getDictionarySync("en-US");
+const RSA = require('./rsa')
 
+const seguranca = new RSA()
 const { checkCpu, checkMemory } = require('./calculeResources');
 
 function checkResources() {
@@ -25,15 +27,27 @@ setTimeout(startConnection, 3000);
 
 function startConnection() {
   var index;
+  var chaveHeap;
   const socket = io.connect('http://10.180.50.218:9510');
   socket.on('connect', () => {
     console.log('Successfully connected!');
-    socket.emit('resources', { cpu: cpu, memory: memory / 1024 })
+  });
+
+  socket.on('publicKey', (chave) => {
+    publicKeyHeap = chave;
+    console.log(publicKeyHeap)
+    var resources = {
+      cpu: cpu,
+      memory: memory / 1024,
+      publicKey: seguranca.publicKey
+    }
+    console.log(resources)
+    socket.emit('resources', seguranca.toEncrypt(resources, publicKeyHeap));
   });
 
   socket.on('index', (indexn)=>{
     index=indexn;
-  })
+  });
 
   socket.on('getResources', () => {
     console.log('recebido')
@@ -45,6 +59,7 @@ function startConnection() {
   })
 
   socket.on('maketask', (dados) => {
+    console.log(dados)
     // console.log(dados)
     var textoCorrigir = dados.dados.split(' ');
     var palavras = {}

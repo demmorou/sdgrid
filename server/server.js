@@ -3,11 +3,11 @@ const bodyParser = require('body-parser')
 const app = express();
 // const appclient = express();
 // const httpclient = require('http').Server(appclient);
-
-var pegar = 'ddd';
-
-const multer = require('multer');
-const path = require('path');
+const RSA = require('./rsa')
+// var pegar = 'ddd';
+const seguranca = new RSA()
+// const multer = require('multer');
+// const path = require('path');
 
 let clients = [];
 let nodes = [];
@@ -55,15 +55,14 @@ ioClient.on("connection", function(socket){
         var texto = requicaoCliente.message
         var listaPalavras = texto.split(' ')
         var cadaNo = qtdPalavrasCada(listaPalavras.length);
-        qtdCadaNo = cadaNo[0];
+        // qtdCadaNo = cadaNo.qtdCadaNo;
         var np = 0;
-        let i;
-        for (i = 0; i < cadaNo[1]; i++) {
-            if (qtdCadaNo[i] > 0) {
+        for (var i = 0; i < cadaNo.totalNodes; i++) {
+            if (cadaNo.qtdCadaNo[i] > 0) {
                 var palavras=listaPalavras[np];
                 np += 1;
-                if (qtdCadaNo[i] > 1) {
-                    for (let j = 1; j < qtdCadaNo[i]; j++) {
+                if (cadaNo.qtdCadaNo[i] > 1) {
+                    for (let j = 1; j < cadaNo.qtdCadaNo[i]; j++) {
                         palavras+=' '+listaPalavras[np];
                         np += 1;
                     }
@@ -71,15 +70,16 @@ ioClient.on("connection", function(socket){
                 var enviar = {
                     idClient:socket.id,
                     parte:i,
-                    totalPartes:cadaNo[1],
+                    totalPartes:cadaNo.totalNodes,
                     dados:palavras
                 }
-                ioNode.to(nodes[i].nodeId).emit('maketask', enviar)
+                console.log(enviar)
+                ioNode.to(nodes[i].nodeId).emit('maketask', enviar);
             } else {
                 break
             }
         }
-        operacoes.push({idClient:socket.id, totalPartes:cadaNo[1], words: {}})
+        operacoes.push({idClient:socket.id, totalPartes:cadaNo.totalNodes, words: {}})
     });
 });
 
@@ -97,8 +97,16 @@ ioNode.on('connection', (socket) => {
         ioNode.emit('update', nodes);
     }
     else{
+        console.log('NoMachine connectado')
+        ioNode.emit('publicKey', seguranca.getPublicKey());
         socket.on('resources', (dados) => {
-            nodes.push({nodeId: socket.id, cpu: dados.cpu, memory: dados.memory, participacao: 0});
+            console.log(dados)
+            nodes.push({
+                nodeId: socket.id,
+                cpu: dados.cpu,
+                memory: dados.memory,
+                participacao: 0
+            });
             ioNode.emit('update', nodes);
         });
         socket.on('disconnect', () => {
@@ -140,7 +148,7 @@ qtdPalavrasCada = (qtdPalavras) => {
             break
         }
     }
-    return [qtdCadaNo, i];
+    return {qtdCadaNo: qtdCadaNo, totalNodes: i};
 }
 
 jsonConcat = (o1, o2) => {
