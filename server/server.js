@@ -117,8 +117,12 @@ ioNode.on('connection', (socket) => {
             }
             ioNode.emit('update', nodes);
         });
+        socket.on('result', (dados) => {
+            console.log(dados.dados);
+        });
     }
     socket.on('correcoes', (resultados)=>{
+        console.log(resultados);
         for (let i = 0; i < operacoes.length; i++) {
             if (resultados.idClient === operacoes[i].idClient) {
                 operacoes[i].totalPartes -= 1

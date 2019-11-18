@@ -1,7 +1,6 @@
 const io = require('socket.io-client');
-// var checkWord = require('check-word'), words = checkWord('en'); // setup the language for check, default is en
-var SpellChecker = require('simple-spellchecker');
-var dictionary = SpellChecker.getDictionarySync("en-US"); 
+const SpellChecker = require('simple-spellchecker');
+const dictionary = SpellChecker.getDictionarySync("en-US");
 
 const { checkCpu, checkMemory } = require('./calculeResources');
 
@@ -45,21 +44,34 @@ function startConnection() {
   })
 
   socket.on('maketask', (dados) => {
-    // console.log(dados)
-    var textoCorrigir = dados.dados.split(' ');
+    const startUsage = process.cpuUsage();
+    var text = dados.dados.replace(/\.|\,|\:|\n/g, '');
+    var textoCorrigir = text.split(' ');
     var palavras = {}
     for(var i = 0; i < textoCorrigir.length; i++){
       if (!dictionary.spellCheck(textoCorrigir[i])) {
         palavras[textoCorrigir[i]] = dictionary.getSuggestions(textoCorrigir[i])
       }
+      var used = process.memoryUsage().heapUsed / 1024 / 1024;
+      console.log(used);
+      var usageCpu = process.cpuUsage(startUsage)
+      console.log(usageCpu.user); 
+      if((usageCpu.user / 1e+6) >= 10){
+        console.log(`The script uses approximately ${usageCpu.user/1e+6}s of CPU`);
+        break;
+      }else if(used >= 30){
+        console.log(`The script uses approximately ${used} MB of memory`);
+        break;
+      }
     }
+
     var retorno = {
       idClient:dados.idClient,
       parte:dados.parte,
       totalPartes:dados.totalPartes,
       words: palavras
     }
-    console.log(retorno)
+    // console.log(retorno)
     socket.emit('correcoes', retorno)
   });
   
