@@ -1,48 +1,63 @@
-const QuickEncrypt = require('quick-encrypt')
-// const crypto = require("crypto");
 const CryptoJS = require("crypto-js");
+const rand = require("generate-key");
+const QuickEncrypt = require('quick-encrypt')
 
 class RSA {
-    constructor() {
-        let keys = QuickEncrypt.generate(2048);
+    constructor(server) {
+        var keys = QuickEncrypt.generate(1024);
+        if (server) {
+            this._key = rand.generateKey();
+        }
         this.publicKey = keys.public;
         this._privateKey = keys.private;
     }
 
-    getPublicKey() {
-        return this.publicKey;
+    criptKey(publicKey) {
+        return QuickEncrypt.encrypt(this._key, publicKey);
     }
 
-    toEncrypt(dados, public_key) {
-        var texto = JSON.stringify(dados);
-        var key = 'asdasd';
-
-        var message = CryptoJS.AES.encrypt(texto, key);
-
-        var heap = QuickEncrypt.encrypt(key, public_key);
-        return {heap:heap, message:message}
+    decryptKey(cript) {
+        this._key = QuickEncrypt.decrypt(cript, this._privateKey)
+        // return QuickEncrypt.decrypt(cript, this._privateKey)
     }
 
-    toDecrypt(dados) {
-        let key = QuickEncrypt.decrypt(dados.heap, this._privateKey);
-        let texto = dados.message
+    jsonToCript(dados) {
+        return CryptoJS.AES.encrypt(JSON.stringify(dados), this._key).toString();
+    }
 
-        var bytes  = CryptoJS.AES.decrypt(texto.toString(), key);
-        var plaintext = bytes.toString(CryptoJS.enc.Utf8);
-
-        return JSON.parse(plaintext)
+    criptToJson(cript) {
+        let bytes  = CryptoJS.AES.decrypt(cript, this._key);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
     }
 }
 
 module.exports = RSA;
+// console.log(rand.generateKey(12));
 
-// const rsa = new RSA();
+// const QuickEncrypt = require('quick-encrypt')
 
-// dados = { cpu: 0.8049382716049382,
-//     memory: 7.658805847167969,
-//     publicKey: '-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAoZxpT9Jj8gq49Z74jBPKs0LbxhWpzAC1grS+JBTJWyIvX9lkDdhzPcOLNEBm\nfFUdmQOIeO2uDIOrLRCoOZY8GXqiJJR72uCkpA3KHKNnvn9xdeFIQIlBQiHVMg6yPhiSd2eI\n4FoigbGIfofuye0/O9lMXmglYBb+Rv1a9o6odfWYLADLi3D8d03yeBJTkIQPhYphA7ny8MNK\n2tgTjjqoZj/wLQ+S3GL1njQjkY9Nn4B+YT5PV9bsE6ncBSpr+z5eMXxAEXFottm0DaNDghBM\nMvqzadUO4Q4zEdp0kGB9jdvyvBEhx+hs6Kd1MI39loDlGom062r62GF4IybpPDSuTQIDAQAB\n-----END RSA PUBLIC KEY-----\n' };
+// class RSA {
+//     constructor() {
+//         var keys = QuickEncrypt.generate(1024);
+//         this.publicKey = keys.public;
+//         this._privateKey = keys.private;
+//     }
 
-// var crip = rsa.toEncrypt(dados, rsa.publicKey);
-// // console.log(crip)
+//     jsonToRncrypt() {
+        
+//     }
+// }
 
-// console.log(rsa.toDecrypt(crip))
+// let keys = QuickEncrypt.generate(1024) // Use either 2048 bits or 1024 bits.
+// console.log(keys) // Generated Public Key and Private Key pair
+// let publicKey = keys.public
+// let privateKey = keys.private
+ 
+// // --- Encrypt using public key ---
+// let encryptedText = QuickEncrypt.encrypt( "secret key 123", publicKey )
+// console.log(encryptedText) // This will print out the ENCRYPTED text, for example : " 01c066e00c660aabadfc320621d9c3ac25ccf2e4c29e8bf4c...... "
+ 
+// // --- Decrypt using private key ---
+// let decryptedText = QuickEncrypt.decrypt( encryptedText, privateKey)
+// console.log(decryptedText) // This will print out the DECRYPTED text, which is " This is some super top secret text! "
+ 

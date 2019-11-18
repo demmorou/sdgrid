@@ -27,22 +27,27 @@ setTimeout(startConnection, 3000);
 
 function startConnection() {
   var index;
-  var chaveHeap;
-  const socket = io.connect('http://10.180.50.218:9510');
+  var keyMaster;
+  const socket = io.connect('http://10.180.15.207:9510');
   socket.on('connect', () => {
     console.log('Successfully connected!');
+    let dadosToSend = {
+      id:socket.id,
+      publicKey:seguranca.publicKey
+    }
+    socket.emit('syncKey', dadosToSend);
   });
 
-  socket.on('publicKey', (chave) => {
-    publicKeyHeap = chave;
-    console.log(publicKeyHeap)
-    var resources = {
-      cpu: cpu,
-      memory: memory / 1024,
-      publicKey: seguranca.publicKey
+  socket.on('keyMaster', (dados) => {
+    if (dados.id == socket.id) {
+      seguranca.decryptKey(dados.keyMaster);
+      let resources = {
+        cpu: cpu,
+        memory: memory / 1024,
+        id: socket.id
+      };
+      socket.emit('resources', seguranca.jsonToCript(resources));
     }
-    console.log(resources)
-    socket.emit('resources', seguranca.toEncrypt(resources, publicKeyHeap));
   });
 
   socket.on('index', (indexn)=>{
@@ -59,8 +64,10 @@ function startConnection() {
   })
 
   socket.on('maketask', (dados) => {
-    console.log(dados)
     // console.log(dados)
+    // console.log(dados)
+    // console.log(dados)
+    dados = seguranca.criptToJson(dados);
     var textoCorrigir = dados.dados.split(' ');
     var palavras = {}
     for(var i = 0; i < textoCorrigir.length; i++){
@@ -74,7 +81,7 @@ function startConnection() {
       totalPartes:dados.totalPartes,
       words: palavras
     }
-    console.log(retorno)
+    // console.log(retorno)
     socket.emit('correcoes', retorno)
   });
   

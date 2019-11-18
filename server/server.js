@@ -5,7 +5,7 @@ const app = express();
 // const httpclient = require('http').Server(appclient);
 const RSA = require('./rsa')
 // var pegar = 'ddd';
-const seguranca = new RSA()
+const seguranca = new RSA(true);
 // const multer = require('multer');
 // const path = require('path');
 
@@ -73,8 +73,9 @@ ioClient.on("connection", function(socket){
                     totalPartes:cadaNo.totalNodes,
                     dados:palavras
                 }
-                console.log(enviar)
-                ioNode.to(nodes[i].nodeId).emit('maketask', enviar);
+                // console.log(enviar)
+                // console.log(seguranca.jsonToCript(enviar))
+                ioNode.to(nodes[i].nodeId).emit('maketask', seguranca.jsonToCript(enviar));
             } else {
                 break
             }
@@ -97,14 +98,21 @@ ioNode.on('connection', (socket) => {
         ioNode.emit('update', nodes);
     }
     else{
+        // ioNode.emit('publicKey', seguranca.publicKey)
+        socket.on('syncKey', (dados) => {
+            let dadosToSend = {
+                id:dados.id,
+                keyMaster:seguranca.criptKey(dados.publicKey)
+            }
+            ioNode.emit('keyMaster', dadosToSend);
+        });
         console.log('NoMachine connectado')
-        ioNode.emit('publicKey', seguranca.getPublicKey());
         socket.on('resources', (dados) => {
-            console.log(dados)
+            let NoMachine = seguranca.criptToJson(dados);
             nodes.push({
-                nodeId: socket.id,
-                cpu: dados.cpu,
-                memory: dados.memory,
+                nodeId: NoMachine.id,
+                cpu: NoMachine.cpu,
+                memory: NoMachine.memory,
                 participacao: 0
             });
             ioNode.emit('update', nodes);
@@ -122,7 +130,7 @@ ioNode.on('connection', (socket) => {
         });
     }
     socket.on('correcoes', (resultados)=>{
-        console.log(resultados);
+        // console.log(resultados);
         for (let i = 0; i < operacoes.length; i++) {
             if (resultados.idClient === operacoes[i].idClient) {
                 operacoes[i].totalPartes -= 1
