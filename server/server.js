@@ -6,6 +6,13 @@ const siofu = require("socketio-file-upload");
 var fs = require('fs');
 const SocketIOFile = require('socket.io-file');
 const PdfReader = require('pdfreader');
+// const appclient = express();
+// const httpclient = require('http').Server(appclient);
+const RSA = require('./rsa')
+// var pegar = 'ddd';
+const seguranca = new RSA(true);
+// const multer = require('multer');
+// const path = require('path');
 
 let clients = [];
 let nodes = [];
@@ -69,7 +76,7 @@ appCliente.get('/socket.io-file-client.js', (req, res, next) => {
 // Start server to NodeMachine
 const server = http.listen(9510, '0.0.0.0', () => {
     console.log('Server NodeMachine Online na porta: ', server.address().port);
-}); 
+});
 
 // Start server to Clients
 const clientServer = httpCliente.listen(1095, '0.0.0.0', () => {
@@ -116,7 +123,6 @@ ioClient.on("connection", function(socket){
             texto = data;
             enviarPalavras(data, socket);
         });
-        // setTimeout(console.log('time out'), 1000);
 	});
 	uploader.on('error', (err) => {
 		console.log('Error!', err);
@@ -128,44 +134,44 @@ ioClient.on("connection", function(socket){
     clients.push(socket.id);
     
     socket.on("dadosCliente", (requicaoCliente) => {
+        console.log(requicaoCliente);
         if(requicaoCliente.messageType === 'texto'){
-            console.log('mensagem de texto');
-            console.log(requicaoCliente.message);
             enviarPalavras(requicaoCliente.message, socket);
         }else{
-            console.log('enviou um arquivo');
+            console.log('mensagem em arquivo');
         }
     });
 });
 
 function enviarPalavras(texto, socket){
-    var listaPalavras = texto.split(' ');
+    var listaPalavras = texto.split(' ')
     var cadaNo = qtdPalavrasCada(listaPalavras.length);
-    qtdCadaNo = cadaNo[0];
+    // qtdCadaNo = cadaNo.qtdCadaNo;
     var np = 0;
-    let i;
-    for (i = 0; i < cadaNo[1]; i++) {
-        if (qtdCadaNo[i] > 0) {
-            var palavras=listaPalavras[np];
+    for (var i = 0; i < cadaNo.totalNodes; i++) {
+        if (cadaNo.qtdCadaNo[i] > 0) {
+            var palavras = listaPalavras[np];
             np += 1;
-            if (qtdCadaNo[i] > 1) {
-                for (let j = 1; j < qtdCadaNo[i]; j++) {
-                    palavras+=' '+listaPalavras[np];
+            if (cadaNo.qtdCadaNo[i] > 1) {
+                for (let j = 1; j < cadaNo.qtdCadaNo[i]; j++) {
+                    palavras += ' ' + listaPalavras[np];
                     np += 1;
                 }
             }
             var enviar = {
-                idClient:socket.id,
-                parte:i,
-                totalPartes:cadaNo[1],
-                dados:palavras
+                idClient: socket.id,
+                parte: i,
+                totalPartes: cadaNo.totalNodes,
+                dados: palavras
             }
-            ioNode.to(nodes[i].nodeId).emit('maketask', enviar)
+            // console.log(enviar)
+            // console.log(seguranca.jsonToCript(enviar))
+            ioNode.to(nodes[i].nodeId).emit('maketask', seguranca.jsonToCript(enviar));
         } else {
             break
         }
     }
-    operacoes.push({idClient:socket.id, totalPartes:cadaNo[1], words: {}})
+    operacoes.push({ idClient: socket.id, totalPartes: cadaNo.totalNodes, words: {} })
 }
 
 // listen nodes
@@ -174,9 +180,23 @@ ioNode.on('connection', (socket) => {
         ioNode.emit('update', nodes);
     }
     else{
+        // ioNode.emit('publicKey', seguranca.publicKey)
+        socket.on('syncKey', (dados) => {
+            let dadosToSend = {
+                id:dados.id,
+                keyMaster:seguranca.criptKey(dados.publicKey)
+            }
+            ioNode.emit('keyMaster', dadosToSend);
+        });
+        console.log('NoMachine connectado')
         socket.on('resources', (dados) => {
-            console.log(dados);
-            nodes.push({nodeId: socket.id, cpu: dados.cpu, memory: dados.memory, participacao: 0});
+            let NoMachine = seguranca.criptToJson(dados);
+            nodes.push({
+                nodeId: NoMachine.id,
+                cpu: NoMachine.cpu,
+                memory: NoMachine.memory,
+                participacao: 0
+            });
             ioNode.emit('update', nodes);
         });
         socket.on('disconnect', () => {
@@ -192,7 +212,7 @@ ioNode.on('connection', (socket) => {
         });
     }
     socket.on('correcoes', (resultados)=>{
-        console.log(resultados);
+        // console.log(resultados);
         for (let i = 0; i < operacoes.length; i++) {
             if (resultados.idClient === operacoes[i].idClient) {
                 operacoes[i].totalPartes -= 1
@@ -223,7 +243,7 @@ qtdPalavrasCada = (qtdPalavras) => {
             break
         }
     }
-    return [qtdCadaNo, i];
+    return {qtdCadaNo: qtdCadaNo, totalNodes: i};
 }
 
 jsonConcat = (o1, o2) => {

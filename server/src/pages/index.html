@@ -45,40 +45,10 @@
         });
     </script> -->
     <script type="text/javascript">
-        // $(() => {
-        //     $("#send").click(()=>{
-        //         sendMessage({
-        //             name: $("#name").val(), 
-        //             message: $("#message").val()
-        //         });
-        //     });
-        //     getMessages();
-        // });
-        
-        // function addMessages(message){
-        //     $("#nodes").append(`
-        //     <div class="p-3 mb-2 bg-info text-white">${message.clientIp}</div>`)
-        // }
-
-        // function addNode(data){
-        //     $("#nodes").append(`
-        //     <div class="p-3 mb-2 bg-info text-white">Client Connected: ${data.clientIp}</div>`)
-        // }
-
         function disconectNode(data){
             $("#nodes").append(`
             <div class="p-3 mb-2 bg-info text-white">Client Disconnected: ${data.clientIp}</div>`)
         }
-
-        // function getMessages(){
-        //     $.get('http://localhost:9510/messages', (data) => {
-        //         data.forEach(addMessages);
-        //     });
-        // }
-
-        // function sendMessage(message){
-        //     $.post('http://localhost:9510/messages', message);
-        // }
 
         function updateNodes(nodes){
             console.log(nodes)

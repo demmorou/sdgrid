@@ -1,10 +1,16 @@
 const io = require('socket.io-client');
-const SpellChecker = require('simple-spellchecker');
-const dictionary = SpellChecker.getDictionarySync("en-US");
+// const SpellChecker = require('simple-spellchecker');
+// const dictionary = SpellChecker.getDictionarySync("en-US");
 const limiarmemory = 30;
 const limiarcpu = 10;
 const tarifacpu = 1;
 const tarifamemory = 2;
+// var checkWord = require('check-word'), words = checkWord('en'); // setup the language for check, default is en
+var SpellChecker = require('simple-spellchecker');
+var dictionary = SpellChecker.getDictionarySync("en-US");
+const RSA = require('./rsa')
+
+const seguranca = new RSA()
 const { checkCpu, checkMemory } = require('./calculeResources');
 
 function checkResources() {
@@ -27,15 +33,32 @@ setTimeout(startConnection, 3000);
 
 function startConnection() {
   var index;
-  const socket = io.connect('http://10.180.35.168:9510');
+  var keyMaster;
+  const socket = io.connect('http://10.180.15.207:9510');
   socket.on('connect', () => {
     console.log('Successfully connected!');
-    socket.emit('resources', { cpu: cpu, memory: memory / 1024 })
+    let dadosToSend = {
+      id:socket.id,
+      publicKey:seguranca.publicKey
+    }
+    socket.emit('syncKey', dadosToSend);
+  });
+
+  socket.on('keyMaster', (dados) => {
+    if (dados.id == socket.id) {
+      seguranca.decryptKey(dados.keyMaster);
+      let resources = {
+        cpu: cpu,
+        memory: memory / 1024,
+        id: socket.id
+      };
+      socket.emit('resources', seguranca.jsonToCript(resources));
+    }
   });
 
   socket.on('index', (indexn)=>{
     index=indexn;
-  })
+  });
 
   socket.on('getResources', () => {
     console.log('recebido')
@@ -47,9 +70,11 @@ function startConnection() {
   })
 
   socket.on('maketask', (dados) => {
-    const startUsage = process.cpuUsage();
-    var text = dados.dados.replace(/\.|\,|\:|\n/g, '');
-    var textoCorrigir = text.split(' ');
+    // console.log(dados)
+    // console.log(dados)
+    // console.log(dados)
+    dados = seguranca.criptToJson(dados);
+    var textoCorrigir = dados.dados.split(' ');
     var palavras = {}
     var used = process.memoryUsage().heapUsed / 1024 / 1024;
     var usageCpu = process.cpuUsage(startUsage);
