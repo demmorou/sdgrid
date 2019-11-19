@@ -209,6 +209,7 @@ ioNode.on('connection', (socket) => {
         });
     }
     socket.on('correcoes', (resultados)=>{
+        resultados = seguranca.criptToJson(resultados);
         for (let i = 0; i < operacoes.length; i++) {
             if (resultados.idClient === operacoes[i].idClient) {
                 operacoes[i].totalPartes -= 1
@@ -232,7 +233,7 @@ qtdPalavrasCada = (qtdPalavras) => {
     });
     for (i = 0; i < nodes.length; i++) {
         qtdCadaNo.push(Math.ceil((nodes[i].memory * qtdPalavras) / totalMemory));
-        qtdPalavras -= 1;
+        qtdPalavras -= qtdCadaNo[i];
     }
     for (i = 0; i < qtdCadaNo.length; i++) {
         if (qtdCadaNo[i] == 0) {

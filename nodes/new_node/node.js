@@ -67,7 +67,7 @@ function startConnection() {
       cpu = response;
     });
     memory = checkMemory();
-    socket.emit('sendResources', {index:index, cpu:cpu, memory:memory})
+    socket.emit('sendResources', seguranca.jsonToCript({index:index, cpu:cpu, memory:memory}))
   })
 
   socket.on('maketask', (dados) => {
@@ -82,8 +82,10 @@ function startConnection() {
         palavras[textoCorrigir[i]] = dictionary.getSuggestions(textoCorrigir[i])
       }
       if((usageCpu.user / 1e+6) >= limiarcpu){
+        console.log('CPU estorada!!')
         break;
       }else if(used >= limiarmemory){
+        console.log('Memoria estorada!!')
         break;
       }
     }
@@ -100,7 +102,7 @@ function startConnection() {
       words: palavras
     }
     console.log(retorno)
-    socket.emit('correcoes', retorno);
+    socket.emit('correcoes', seguranca.jsonToCript(retorno));
   });
   
 }
