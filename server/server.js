@@ -134,7 +134,6 @@ ioClient.on("connection", function(socket){
     clients.push(socket.id);
     
     socket.on("dadosCliente", (requicaoCliente) => {
-        console.log(requicaoCliente);
         if(requicaoCliente.messageType === 'texto'){
             enviarPalavras(requicaoCliente.message, socket);
         }else{
@@ -144,9 +143,9 @@ ioClient.on("connection", function(socket){
 });
 
 function enviarPalavras(texto, socket){
-    var listaPalavras = texto.split(' ')
+    texto = texto.replace(/\.|\,|\:|\n|\?|\'|\’/g, '');
+    var listaPalavras = texto.split(' ');
     var cadaNo = qtdPalavrasCada(listaPalavras.length);
-    // qtdCadaNo = cadaNo.qtdCadaNo;
     var np = 0;
     for (var i = 0; i < cadaNo.totalNodes; i++) {
         if (cadaNo.qtdCadaNo[i] > 0) {
@@ -164,14 +163,12 @@ function enviarPalavras(texto, socket){
                 totalPartes: cadaNo.totalNodes,
                 dados: palavras
             }
-            // console.log(enviar)
-            // console.log(seguranca.jsonToCript(enviar))
             ioNode.to(nodes[i].nodeId).emit('maketask', seguranca.jsonToCript(enviar));
         } else {
             break
         }
     }
-    operacoes.push({ idClient: socket.id, totalPartes: cadaNo.totalNodes, words: {} })
+    operacoes.push({ idClient: socket.id, totalPartes: cadaNo.totalNodes, words: {}, tarifa: 0 })
 }
 
 // listen nodes
@@ -212,14 +209,13 @@ ioNode.on('connection', (socket) => {
         });
     }
     socket.on('correcoes', (resultados)=>{
-        // console.log(resultados);
         for (let i = 0; i < operacoes.length; i++) {
             if (resultados.idClient === operacoes[i].idClient) {
                 operacoes[i].totalPartes -= 1
-
+                operacoes[i].tarifa += resultados.tarifa
                 operacoes[i].words = jsonConcat(operacoes[i].words, resultados.words)
                 if (operacoes[i].totalPartes == 0) {
-                    ioClient.to(operacoes[i].idClient).emit('correcao', operacoes[i].words);
+                    ioClient.to(operacoes[i].idClient).emit('correcao', { palavras: operacoes[i].words, tarifa: operacoes[i].tarifa });
                     operacoes.splice(i, 1);
                 }
             }

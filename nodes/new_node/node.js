@@ -1,10 +1,11 @@
 const io = require('socket.io-client');
 // const SpellChecker = require('simple-spellchecker');
 // const dictionary = SpellChecker.getDictionarySync("en-US");
-const limiarmemory = 30;
+const limiarmemory = 40;
 const limiarcpu = 10;
-const tarifacpu = 1;
+const tarifacpu = 3;
 const tarifamemory = 2;
+let tarifa = limiarmemory*tarifacpu;
 // var checkWord = require('check-word'), words = checkWord('en'); // setup the language for check, default is en
 var SpellChecker = require('simple-spellchecker');
 var dictionary = SpellChecker.getDictionarySync("en-US");
@@ -90,15 +91,16 @@ function startConnection() {
     console.log(`The script uses approximately ${used} MB of memory`);
     console.log('tarifa memory: ', used*tarifamemory);
     console.log('tarifa da cpu: ', (usageCpu.user/1e+6)*tarifacpu);
+    tarifa = (used*tarifamemory)+((usageCpu.user/1e+6)*tarifacpu);
     var retorno = {
-      tarifa: '',
+      tarifa: tarifa,
       idClient:dados.idClient,
       parte:dados.parte,
       totalPartes:dados.totalPartes,
       words: palavras
     }
-    // console.log(retorno)
-    socket.emit('correcoes', retorno)
+    console.log(retorno)
+    socket.emit('correcoes', retorno);
   });
   
 }

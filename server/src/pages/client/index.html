@@ -49,6 +49,7 @@
                 </div>
             </div>
         </form>
+        <p id="tarifa"></p>
         <h3>Resultado</h3>
         <div class="alert-info" id="words">
         </div>
@@ -113,8 +114,10 @@
             // }
         });
 
-        socket.on("correcao", function (palavras) {
-                jQuery.each(palavras, function (i, val) {
+        socket.on("correcao", function (dados) {
+                // $("#tarifa").val(`cobrado ${dados.tarifa} sdcoins`);
+                document.getElementById("tarifa").innerHTML = `Cobrança: ${dados.tarifa} sdcoins`
+                jQuery.each(dados.palavras, function (i, val) {
                     $("#" + i).append(document.createTextNode(" - " + val));
                     $("#words").append(`
                     <div class="p-3 mt-3 bg-info text-white">
