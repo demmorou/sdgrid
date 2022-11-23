@@ -28,7 +28,7 @@
     "pdfreader": "^1.0.6",
     "quick-encrypt": "^1.0.8",
     "simple-spellchecker": "^1.0.0",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "socket.io-file": "^2.0.31",
     "socket.io-file-client": "^2.0.2",
     "socketio-file-upload": "^0.7.0"
