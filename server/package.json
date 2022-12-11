@@ -19,7 +19,7 @@
     "check-word": "^1.1.0",
     "cpulimit": "^1.1.4",
     "crypto-js": "^3.1.9-1",
-    "express": "4.17.1",
+    "express": "4.17.3",
     "generate-key": "0.0.6",
     "http": "^0.0.0",
     "mongoose": "^5.7.7",
